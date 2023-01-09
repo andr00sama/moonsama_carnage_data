@@ -2,12 +2,6 @@ def get_and_load_dictionary(input):
     import requests, json
     return json.loads(requests.get(input).text)
 
-def build_dictionary_array(url_array):
-    json_array = []
-    for url in url_array:
-            json_array.append(get_and_load_dictionary(url))
-    return json_array
-
 def sama_sorter(result_dictionary, gganbu_dictionary):
     moonsama_list = []
     exosama_list = []
