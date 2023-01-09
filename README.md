@@ -16,5 +16,5 @@
   functions.py
 </h4>
 <h6>
-  I like to keep the run file as clean and easy to understand as possible, so I put most of the functions in a separate file
+  Library of functions I've created to help process carnage data. Sama Counter counts the number of Moonsamas, Exosamas, and Gromlins/VIPs. Sama Lister gives a list of the players who showed up to Carnage for a given week. Attendance counter counts the number of times players have shown up for a range of carnage sessions.
 </h6>
