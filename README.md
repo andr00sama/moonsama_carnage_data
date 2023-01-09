@@ -5,22 +5,6 @@
 <h3> 
   I'm n00b be nice plz. 
 </h3>
-<h4> 
-  run.py
-</h4>
-<h6>
-  If you run this file and have the other files saved in the same directory, it will output the following information for every Carnage from week 48 to 55:
-  <br>
-  Week Number: 55
-  <br>
-  Total Players: 1020
-  <br>
-  Moonsamas: 256
-  <br>
-  Exosamas: 519
-  <br>
-  Gromlins/VIPS: 245
-</h6>
 <h4>
   input.py
 </h4>
