@@ -1,5 +1,5 @@
+from helpers import batch_fetch
 import asyncio
-import aiohttp
 import time
 
 def get_and_load_dictionary(input):
@@ -23,21 +23,6 @@ def sama_counter_depr(week):
             exosama_count = exosama_count + 1
     return moonsama_count, exosama_count, gromlinvip_count
 
-async def get(url, session):
-    try:
-        async with session.get(url=url) as response:
-            resp = await response.json()
-            return resp
-            # print("Successfully got url {} with resp of length {}.".format(url, len(resp)))
-    except Exception as e:
-        print("Unable to get url {} due to {}.".format(url, e.__class__))
-
-
-async def fetch_gganbu_per_player(urls):
-    async with aiohttp.ClientSession() as session:
-        res = await asyncio.gather(*[get(url, session) for url in urls])
-        return res
-
 def sama_counter(week):
     from inputs import raw_gganbu_array, raw_result_array
     week_index = week - 17
@@ -50,7 +35,7 @@ def sama_counter(week):
     participants = result_dictionary.keys()
     request_urls = [base_url+player for player in participants]
     # start = time.time()
-    gganbu_per_player = asyncio.run(fetch_gganbu_per_player(request_urls))
+    gganbu_per_player = asyncio.run(batch_fetch(request_urls))
     # end = time.time()
     # print("Took {} seconds".format(end - start))
     for player in gganbu_per_player:
