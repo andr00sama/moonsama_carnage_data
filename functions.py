@@ -34,10 +34,7 @@ def sama_counter(week):
     base_url = "https://mcapi.moonsama.com/game/minecraft-carnage-2023-01-08/carnage-stats/result/gganbu?player="
     participants = result_dictionary.keys()
     request_urls = [base_url+player for player in participants]
-    # start = time.time()
     gganbu_per_player = asyncio.run(batch_fetch(request_urls))
-    # end = time.time()
-    # print("Took {} seconds".format(end - start))
     for player in gganbu_per_player:
         # have atleast 1 moonsama = moonsama
         if player["power"] > 0:
@@ -50,20 +47,14 @@ def sama_counter(week):
             gromlinvip_count+=1
     return moonsama_count, exosama_count, gromlinvip_count
 
-def sama_lister(week):
-    from inputs import raw_gganbu_array, raw_result_array
-    week_index = week - 17
-    gganbu_dictionary = get_and_load_dictionary(raw_gganbu_array[week_index])
-    result_dictionary = get_and_load_dictionary(raw_result_array[week_index])
-    player_list = []
-    for player in result_dictionary.keys():
-        player_list.append(player)
-    return player_list
-
 def attendance_counter(first_week, last_week):
+    from inputs import raw_result_array
+    week_index = week - 17
+    rss_per_user_week_dict = get_and_load_dictionary(raw_result_array[week_index])
+
     attendance_log = []
     for week in range(first_week, last_week+1):
-        for player in sama_lister(week):
+        for player in rss_per_user_week_dict.keys():
             attendance_log.append(player)
     attendance_log.sort()
     attendance_name = []
@@ -79,3 +70,4 @@ def attendance_counter(first_week, last_week):
     attendance_final.sort()
     attendance_final.reverse()
     return attendance_final
+
