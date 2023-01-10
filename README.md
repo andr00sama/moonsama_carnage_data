@@ -6,6 +6,9 @@
   I'm n00b be nice plz. 
 </h3>
 <h4>
+  Clone the repo and run pip install -r requirements.txt. If python3, pip3 install -r requirements.txt.
+</h4>
+<h4>
   input.py
 </h4>
 <h6>
