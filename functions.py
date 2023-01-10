@@ -1,8 +1,12 @@
+import asyncio
+import aiohttp
+import time
+
 def get_and_load_dictionary(input):
     import requests, json
     return json.loads(requests.get(input).text)
 
-def sama_counter(week):
+def sama_counter_depr(week):
     from inputs import raw_gganbu_array, raw_result_array
     week_index = week - 17
     gganbu_dictionary = get_and_load_dictionary(raw_gganbu_array[week_index])
@@ -17,6 +21,48 @@ def sama_counter(week):
             moonsama_count = moonsama_count + 1
         else:
             exosama_count = exosama_count + 1
+    return moonsama_count, exosama_count, gromlinvip_count
+
+async def get(url, session):
+    try:
+        async with session.get(url=url) as response:
+            resp = await response.json()
+            return resp
+            # print("Successfully got url {} with resp of length {}.".format(url, len(resp)))
+    except Exception as e:
+        print("Unable to get url {} due to {}.".format(url, e.__class__))
+
+
+async def fetch_gganbu_per_player(urls):
+    async with aiohttp.ClientSession() as session:
+        res = await asyncio.gather(*[get(url, session) for url in urls])
+        return res
+
+def sama_counter(week):
+    from inputs import raw_gganbu_array, raw_result_array
+    week_index = week - 17
+    gganbu_dictionary = get_and_load_dictionary(raw_gganbu_array[week_index])
+    result_dictionary = get_and_load_dictionary(raw_result_array[week_index])
+    moonsama_count = 0
+    exosama_count = 0
+    gromlinvip_count = 0
+    base_url = "https://mcapi.moonsama.com/game/minecraft-carnage-2023-01-08/carnage-stats/result/gganbu?player="
+    participants = result_dictionary.keys()
+    request_urls = [base_url+player for player in participants]
+    # start = time.time()
+    gganbu_per_player = asyncio.run(fetch_gganbu_per_player(request_urls))
+    # end = time.time()
+    # print("Took {} seconds".format(end - start))
+    for player in gganbu_per_player:
+        # have atleast 1 moonsama = moonsama
+        if player["power"] > 0:
+            moonsama_count+=1
+         # 0 moonsamas, atleast 1 exosama = exosama
+        elif player["exo_power"] > 0: 
+            exosama_count+=1
+        # 0 moonsamas, 0 exosamas, but still played = vip ticket
+        else:
+            gromlinvip_count+=1
     return moonsama_count, exosama_count, gromlinvip_count
 
 def sama_lister(week):

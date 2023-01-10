@@ -38,6 +38,7 @@ raw_result_array = [
 "https://mcapi.moonsama.com/game/minecraft-carnage-2022-12-25/carnage-stats/result/final",
 "https://mcapi.moonsama.com/game/minecraft-carnage-2023-01-01/carnage-stats/result/final",
 "https://mcapi.moonsama.com/game/minecraft-carnage-2023-01-08/carnage-stats/result/final"]
+
 raw_gganbu_array = [
 "https://mcapi.moonsama.com/game/minecraft-carnage-2022-04-17/carnage-stats/result/gganbu",
 "https://mcapi.moonsama.com/game/minecraft-carnage-2022-04-24/carnage-stats/result/gganbu",
