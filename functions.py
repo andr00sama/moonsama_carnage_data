@@ -49,12 +49,10 @@ def sama_counter(week):
 
 def attendance_counter(first_week, last_week):
     from inputs import raw_result_array
-    week_index = week - 17
-    rss_per_user_week_dict = get_and_load_dictionary(raw_result_array[week_index])
-
+    all_weeks_rss_data = asyncio.run(batch_fetch(raw_result_array[first_week-1:last_week+1])) # fetch data for all specified weeks
     attendance_log = []
-    for week in range(first_week, last_week+1):
-        for player in rss_per_user_week_dict.keys():
+    for week in all_weeks_rss_data:
+        for player in week.keys():
             attendance_log.append(player)
     attendance_log.sort()
     attendance_name = []
@@ -71,3 +69,4 @@ def attendance_counter(first_week, last_week):
     attendance_final.reverse()
     return attendance_final
 
+print(attendance_counter(1, 55))
