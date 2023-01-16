@@ -1,8 +1,12 @@
+from helpers import batch_fetch
+import asyncio
+import time
+
 def get_and_load_dictionary(input):
     import requests, json
     return json.loads(requests.get(input).text)
 
-def sama_counter(week):
+def sama_counter_depr(week):
     from inputs import raw_gganbu_array, raw_result_array
     week_index = week - 17
     gganbu_dictionary = get_and_load_dictionary(raw_gganbu_array[week_index])
@@ -19,20 +23,36 @@ def sama_counter(week):
             exosama_count = exosama_count + 1
     return moonsama_count, exosama_count, gromlinvip_count
 
-def sama_lister(week):
+def sama_counter(week):
     from inputs import raw_gganbu_array, raw_result_array
     week_index = week - 17
     gganbu_dictionary = get_and_load_dictionary(raw_gganbu_array[week_index])
     result_dictionary = get_and_load_dictionary(raw_result_array[week_index])
-    player_list = []
-    for player in result_dictionary.keys():
-        player_list.append(player)
-    return player_list
+    moonsama_count = 0
+    exosama_count = 0
+    gromlinvip_count = 0
+    base_url = "https://mcapi.moonsama.com/game/minecraft-carnage-2023-01-08/carnage-stats/result/gganbu?player="
+    participants = result_dictionary.keys()
+    request_urls = [base_url+player for player in participants]
+    gganbu_per_player = asyncio.run(batch_fetch(request_urls))
+    for player in gganbu_per_player:
+        # have atleast 1 moonsama = moonsama
+        if player["power"] > 0:
+            moonsama_count+=1
+         # 0 moonsamas, atleast 1 exosama = exosama
+        elif player["exo_power"] > 0: 
+            exosama_count+=1
+        # 0 moonsamas, 0 exosamas, but still played = vip ticket
+        else:
+            gromlinvip_count+=1
+    return moonsama_count, exosama_count, gromlinvip_count
 
 def attendance_counter(first_week, last_week):
+    from inputs import raw_result_array
+    all_weeks_rss_data = asyncio.run(batch_fetch(raw_result_array[first_week-1:last_week+1])) # fetch data for all specified weeks
     attendance_log = []
-    for week in range(first_week, last_week+1):
-        for player in sama_lister(week):
+    for week in all_weeks_rss_data:
+        for player in week.keys():
             attendance_log.append(player)
     attendance_log.sort()
     attendance_name = []
@@ -48,3 +68,5 @@ def attendance_counter(first_week, last_week):
     attendance_final.sort()
     attendance_final.reverse()
     return attendance_final
+
+print(attendance_counter(1, 55))
