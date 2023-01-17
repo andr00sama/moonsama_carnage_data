@@ -5,19 +5,18 @@
 <h3> 
   I'm n00b be nice plz. 
 </h3>
+
 <h4>
-  Clone the repo and run pip install -r requirements.txt. If python3, pip3 install -r requirements.txt.
-</h4>
-<h4>
-  input.py
+Where do we get the data? 
 </h4>
 <h6>
-  I saved all of the json urls from mcapi.moonsama.com to two arrays, one containing the full results and the second containing the value of each gganbu share for each game.
+1) https://github.com/moonsama/dev-resources
 </h6>
 
 <h4>
-  functions.py
+Setting up the project
 </h4>
 <h6>
-  Library of functions I've created to help process carnage data. Sama Counter counts the number of Moonsamas, Exosamas, and Gromlins/VIPs. Sama Lister gives a list of the players who showed up to Carnage for a given week. Attendance counter counts the number of times players have shown up for a range of carnage sessions.
+  Clone the repo and run pip install -r requirements.txt. If python3, pip3 install -r requirements.txt.
 </h6>
+
