@@ -1,3 +1,4 @@
+
 raw_result_array = [
 "https://mcapi.moonsama.com/game/minecraft-carnage-2022-04-17/carnage-stats/result/final",
 "https://mcapi.moonsama.com/game/minecraft-carnage-2022-04-24/carnage-stats/result/final",
