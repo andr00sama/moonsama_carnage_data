@@ -5,18 +5,17 @@
 <h3> 
   I'm n00b be nice plz. 
 </h3>
-
 <h4>
 Where do we get the data? 
 </h4>
-<h6>
-1) https://github.com/moonsama/dev-resources
-</h6>
+<h5>
+https://github.com/moonsama/dev-resources
+</h5>
 
 <h4>
 Setting up the project
 </h4>
-<h6>
+<h5>
   Clone the repo and run pip install -r requirements.txt. If python3, pip3 install -r requirements.txt.
-</h6>
+</h5>
 
