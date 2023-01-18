@@ -4,9 +4,10 @@ import sys
 import gc
 import time
 from datetime import datetime
-from tiny import create_entry, read_entry
+from tiny import create_entry, read_entry, create_many
 from async_request_manager import HttpClient
 import requests
+import json
 
 """
 Calculates the size of an object in bytes.
@@ -58,63 +59,6 @@ def carnage_dates():
             break
         dates.append(datetime.fromtimestamp(carnage_time/1000))
     return dates
-
-def url_carnage_final(gameId):
-    return "https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(gameId) 
-
-def url_carnage_gganbu(gameId):
-    return "https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu".format(gameId)
-
-# async def fetch_carnage_gganbu_players(gameId, players):
-#     all_urls = []
-#     participants_each_week = asyncio.run(batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(date.date()) for date in dates]))
-#     for idx, date in enumerate(dates):
-#         urls = ["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu?player={}".format(date.date(), participant) for participant in participants_each_week[idx].keys()]
-#         all_urls.append(urls)
-#     return all_urls
-
-"""
-Retrieves data for a specific game_id from the database. If the data is not available, it fetches the data using 
-`fetch_carnage_final()`, `fetch_carnage_gganbu()`, and `fetch_carnage_gganbu_players()` and stores it in the database.
-
-Args:
-    game_id (str): The game_id of the data to retrieve.
-    
-Returns:
-    dict: A dictionary containing the data for the specified game_id. 
-    The dictionary will contain the following keys:
-        game_id (str): The game_id of the data.
-        data (dict): A dictionary containing the data for the game.
-            final (list): The final data for the game
-            gganbu_players (list): The gganbu players data for the game
-            gganbu (list): The gganbu data for the game
-"""
-def get_data_by_gameid(game_id):
-    data = read_entry(game_id) # reading game_id from database
-    if not data: 
-        # sync requests 
-        players_final_rss = requests.get("https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(game_id)).json()
-        all_gganbu = requests.get("https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(game_id)).json()
-        participants = players_final_rss.keys()
-        # async because we have to query each player 
-        async_client = HttpClient()
-        players_gganbu = asyncio.run(async_client.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu?player={}".format(game_id, participant) for participant in participants]))
-        # resultant data
-        data = {
-            'game_id': game_id,
-            'data': {
-                'final': players_final_rss,
-                'gganbu_players': players_gganbu,
-                'gganbu': all_gganbu
-            }
-        }
-        print(data)
-        # store it 
-        create_entry(game_id, player_rss=players_final_rss, players_gganbu=players_gganbu, all_gganbu=all_gganbu) # can specify arguments to avoid having to remember positions peeps
-    return data
-
-def init_db_data():
-    pass
 
 def get_and_load_dictionary(url):
     import requests, json

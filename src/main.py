@@ -1,13 +1,19 @@
 import insights
 import helpers
 import time
-import asyncio
-
+import json
 def main():
     pass
     start_time = time.time()
-    # insights.attendance_counter(0,20)
-    print(helpers.get_data_by_gameid("2023-01-15"))
+
+    """
+    avoid calling init_db_data() again if possible (takes over 1 minute right now).
+    it is really not expected to be used often at all (literally only when we first ever create db or 
+    maybe if data becomes corrupted or we mess up on some insertions).
+    """ 
+    
+
+    # helpers.init_db_data() 
 
     end_time = time.time()
 
