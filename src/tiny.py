@@ -2,10 +2,10 @@ from tinydb import TinyDB, Query
 import asyncio
 import aiohttp
 from datetime import datetime
-from async_request_manager import HttpClient
+import asyncrequests
 import requests
 import json
-from helpers import *
+import utils
 
 """
 SHAPE
@@ -40,13 +40,14 @@ METHODS
 db = TinyDB('db.json')
 
 # Create a new entry in the database
-def create_entry(game_id, players_rss, players_gganbu, all_gganbu):
+def create_entry(game_id, players_rss=None, players_gganbu=None, all_gganbu=None, leaderboards=None):
     db.insert({
         'game_id': game_id,
         'data': {
             'final': players_rss,
             'gganbu_players': players_gganbu,
-            'gganbu': all_gganbu
+            'gganbu': all_gganbu,
+            'leaderboards': leaderboards
         }
     })
 
@@ -59,15 +60,21 @@ def read_entry(game_id):
     entry = Query()
     return db.search(entry.game_id == game_id)
 
+# Read a single entry from the database
+def read_all():
+    return db.all()
+
 # Update an entry in the database
-def update_entry(game_id, players_rss, players_gganbu, all_gganbu):
+def update_entry(game_id, players_rss, players_gganbu, all_gganbu, leaderboards):
     entry = Query()
+    
     db.update({
         'game_id': game_id,
         'data': {
             'final': players_rss,
             'gganbu_players': players_gganbu,
-            'gganbu': all_gganbu
+            'gganbu': all_gganbu,
+            'leaderboards': leaderboards
         }
     }, entry.game_id == game_id)
 
@@ -93,28 +100,30 @@ Returns:
             gganbu (list): The gganbu data for the game
 """
 def get_data_by_gameid(game_id):
-    if isinstance(game_id, datetime.date):
-        game_id = game_id.date().isoformat()
+    if not isinstance(game_id, datetime):
+        game_id = game_id.strftime("%Y-%m-%d")
     data = read_entry(game_id) # reading game_id from database
     if not data: 
         # sync requests 
         players_final_rss = requests.get("https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(game_id)).json()
         all_gganbu = requests.get("https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu".format(game_id)).json()
+        leaderboards = requests.get("https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/leaderboard".format(game_id))
         participants = players_final_rss.keys()
-        # async because we have to query each player 
-        async_client = HttpClient()
-        players_gganbu = asyncio.run(async_client.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu?player={}".format(game_id, participant) for participant in participants]))
+  
+        players_gganbu = asyncio.run(asyncrequests.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu?player={}".format(game_id, participant) for participant in participants]))
+        leaderboards = requests.get("https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/leaderboard".format(game_id))
         # resultant data
         data = {
             'game_id': game_id,
             'data': {
                 'final': players_final_rss,
                 'gganbu_players': players_gganbu,
-                'gganbu': all_gganbu
+                'gganbu': all_gganbu,
+                'leaderboards': leaderboards
             }
         }
         # store it 
-        create_entry(game_id, player_rss=players_final_rss, players_gganbu=players_gganbu, all_gganbu=all_gganbu) # can specify arguments to avoid having to remember positions peeps
+        create_entry(game_id, players_rss=players_final_rss, players_gganbu=players_gganbu, all_gganbu=all_gganbu, leaderboards=leaderboards) # can specify arguments to avoid having to remember positions peeps
     return data
     
 """
@@ -124,46 +133,30 @@ with functions like get_data_by_gameid().
 Args:
 Returns:
 """
-# improve -> session instantiated in batch_fetch tears down between successive calls. this is a place where having one session might be more efficient.
-# better way to do async with all_games_players_gganbu
-def init_db_data():
-    # try not to 
-    with open('./../db.json', 'r') as f:
-        data = json.load(f)
-        if bool(data) == False:
-            return
-
-    # fetches
-    game_ids = carnage_dates()
-    async_client = HttpClient()
-    all_games_players_final_rss = asyncio.run(async_client.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(game_id.date()) for game_id in game_ids]))
-    all_games_all_gganbu = asyncio.run(async_client.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu".format(game_id.date()) for game_id in game_ids]))
-    
-    # need to async this completely 
-    ## a sloppy way might be to async all games and then for each game, async all player calls 
+def fetch_all_and_store():
+    game_ids = utils.carnage_dates()
+    all_games_players_final_rss = asyncio.run(asyncrequests.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/final".format(game_id.date()) for game_id in game_ids]))
+    all_games_all_gganbu = asyncio.run(asyncrequests.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu".format(game_id.date()) for game_id in game_ids]))
+    leaderboards = asyncio.run(asyncrequests.batch_fetch(["https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/leaderboard".format(game_id.date()) for game_id in game_ids]))
     all_games_players_gganbu = []
     for idx, game_id in enumerate(game_ids):
-        players_gganbu = asyncio.run(async_client.batch_fetch(            
+        players_gganbu = asyncio.run(asyncrequests.batch_fetch(            
             [
                 "https://mcapi.moonsama.com/game/minecraft-carnage-{}/carnage-stats/result/gganbu?player={}".format(game_id.date(), participant)
                 for participant in all_games_players_final_rss[idx].keys()
             ]
         ))
         all_games_players_gganbu.append(players_gganbu)
-    print(len(all_games_players_gganbu))
-    
-    # consolidate parallel lists
     all_data = [
         {
         'game_id': game_id.date().isoformat(),
         'data': {
             'final': all_games_players_final_rss[idx],
             'gganbu_players': all_games_players_gganbu[idx],
-            'gganbu': all_games_all_gganbu[idx]
+            'gganbu': all_games_all_gganbu[idx],
+            'leaderboards': leaderboards[idx]
             }
         }
         for idx, game_id in enumerate(game_ids)
     ]
-
-    # write all games to database
     create_many(all_data)
